@@ -1,0 +1,40 @@
+
+
+.map-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#map-container {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background-color: lightgrey;
+  overflow: clip;
+}
+
+@supports not (overflow: clip) {
+  #map-container {
+    overflow: hidden;
+  }
+}
+
+/* Prevent canvas baseline gap creating a few px overflow */
+#map-container .mapboxgl-canvas-container {
+  line-height: 0;
+}
+
+#map-container .mapboxgl-canvas {
+  display: block;
+}
+
+.search-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: min(340px, 90vw);
+  z-index: 10;
+}
