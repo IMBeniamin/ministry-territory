@@ -1,3 +1,5 @@
+import type { FeatureCollection, Point, Polygon } from 'geojson';
+
 export const territoryGeoJson = {
   type: 'FeatureCollection',
   features: [
@@ -21,7 +23,7 @@ export const territoryGeoJson = {
       },
     },
   ],
-};
+} satisfies FeatureCollection<Polygon>;
 
 export const initialHeatPoints = {
   type: 'FeatureCollection',
@@ -67,4 +69,4 @@ export const initialHeatPoints = {
       geometry: { type: 'Point', coordinates: [10.3278, 44.8102] },
     },
   ],
-};
+} satisfies FeatureCollection<Point>;
