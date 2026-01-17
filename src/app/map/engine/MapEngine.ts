@@ -131,7 +131,6 @@ export class MapEngine {
     const map = this.map;
     if (!map || !this.styleReady) return;
 
-    const beforeId = findFirstSymbolLayerId(map);
     (
       Object.entries(nextOverlays) as Array<[OverlayKey, MapOverlays[OverlayKey]]>
     ).forEach(([key, data]) => {
@@ -140,7 +139,7 @@ export class MapEngine {
         this.removeOverlay(overlay.layerIds, overlay.sourceId);
         return;
       }
-      overlay.apply(map, data, { beforeId });
+      overlay.apply(map, data, { beforeId: undefined });
     });
   }
 
@@ -198,21 +197,19 @@ export class MapEngine {
   private applyOverlays() {
     const map = this.map;
     if (!map || !this.styleReady) return;
-    const beforeId = findFirstSymbolLayerId(map);
 
     OVERLAY_KEYS.forEach((key) => {
       const overlay = OVERLAY_REGISTRY[key];
       const data = this.overlays[key];
       if (!data) return;
-      overlay.apply(map, data, { beforeId });
+      overlay.apply(map, data, { beforeId: undefined });
     });
   }
 
   private applyUserLocation() {
     if (!this.map || !this.userLocation) return;
-    const beforeId = findFirstSymbolLayerId(this.map);
     const data = buildUserLocationGeoJson(this.userLocation);
-    USER_LOCATION_OVERLAY.apply(this.map, data, { beforeId });
+    USER_LOCATION_OVERLAY.apply(this.map, data, { beforeId: undefined });
   }
 
   private removeOverlay(layerIds: string[], sourceId: string) {
@@ -305,9 +302,9 @@ export class MapEngine {
           'text-padding': 1,
         },
         paint: {
-          'text-color': '#202020',
+          'text-color': '#000000',
           'text-halo-color': '#ffffff',
-          'text-halo-width': 1.2,
+          'text-halo-width': 1.5,
         },
       },
       beforeId,
