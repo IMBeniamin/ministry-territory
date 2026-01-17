@@ -61,6 +61,7 @@ function MapRouteComponent() {
         >
           Map type
         </Button>
+        
         <Collapse in={mapTypeOpen}>
           <Paper className="map-type-panel" shadow="md" radius="md" p="xs">
             <SegmentedControl
@@ -72,6 +73,15 @@ function MapRouteComponent() {
             />
           </Paper>
         </Collapse>
+      </div>
+
+      <div className="map-debug-panel">
+        <div className="map-debug-item">
+          <span className="map-debug-label">Zoom</span>
+          <span className="map-debug-value">
+            {state.viewState.zoom.toFixed(1)}
+          </span>
+        </div>
       </div>
 
       <div id="map-container">

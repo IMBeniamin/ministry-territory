@@ -47,7 +47,7 @@ export function BasemapEnhancements({ basemap }: BasemapEnhancementsProps) {
     id: BUILDING_LAYER_ID,
     type: 'fill-extrusion',
     'source-layer': 'building',
-    minzoom: 15,
+    minzoom: 20,
     paint: {
       'fill-extrusion-color': '#c8c8c8',
       'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 6],
@@ -72,7 +72,7 @@ export function BasemapEnhancements({ basemap }: BasemapEnhancementsProps) {
     id: HOUSENUMBER_LAYER_ID,
     type: 'symbol',
     'source-layer': 'housenumber',
-    minzoom: 17,
+    minzoom: 15,
     layout: {
       'text-field': ['get', 'housenumber'],
       'text-size': ['interpolate', ['linear'], ['zoom'], 17, 11, 19, 14],
