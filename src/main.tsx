@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
   },
 });
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={theme} defaultColorScheme="auto">
@@ -36,5 +36,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       </MantineProvider>
       <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
     </QueryClientProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

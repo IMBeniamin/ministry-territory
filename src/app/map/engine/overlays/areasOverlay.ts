@@ -1,5 +1,5 @@
 import type { Map } from 'maplibre-gl';
-import type { MapOverlays } from '@/app/map/types';
+import type { OverlayData } from '@/app/map/types';
 import { ensureGeoJsonSource, ensureLayer } from './overlayUtils';
 import type { OverlayContext, OverlayDefinition } from './overlayRegistry';
 
@@ -8,11 +8,11 @@ const AREA_FILL_LAYER_ID = 'areas-fill';
 const AREA_LINE_LAYER_ID = 'areas-outline';
 const AREA_LABEL_LAYER_ID = 'areas-label';
 
-export const AREAS_OVERLAY: OverlayDefinition<NonNullable<MapOverlays['areas']>> = {
+export const AREAS_OVERLAY: OverlayDefinition<OverlayData['areas']> = {
   id: 'areas',
   sourceId: AREA_SOURCE_ID,
   layerIds: [AREA_FILL_LAYER_ID, AREA_LINE_LAYER_ID, AREA_LABEL_LAYER_ID],
-  apply(map: Map, data: NonNullable<MapOverlays['areas']>, context: OverlayContext) {
+  apply(map: Map, data: OverlayData['areas'], context: OverlayContext) {
     ensureGeoJsonSource(map, AREA_SOURCE_ID, data);
 
     ensureLayer(
@@ -24,6 +24,7 @@ export const AREAS_OVERLAY: OverlayDefinition<NonNullable<MapOverlays['areas']>>
         paint: {
           'fill-color': '#2f6bff',
           'fill-opacity': 0.18,
+          'fill-antialias': false,
         },
       },
       context.beforeId,
@@ -35,6 +36,10 @@ export const AREAS_OVERLAY: OverlayDefinition<NonNullable<MapOverlays['areas']>>
         id: AREA_LINE_LAYER_ID,
         type: 'line',
         source: AREA_SOURCE_ID,
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round',
+        },
         paint: {
           'line-color': '#1f4fdd',
           'line-width': 2.5,

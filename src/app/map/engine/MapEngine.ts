@@ -1,4 +1,8 @@
-import maplibregl, { type Map } from 'maplibre-gl';
+import maplibregl, {
+  type AttributionControl,
+  type Map,
+  type MapSourceDataEvent,
+} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   FOLLOW_ANIMATION_MS,
@@ -10,8 +14,8 @@ import {
   MAP_MAX_PITCH,
   MAP_MAX_ZOOM,
 } from '@/app/map/config/defaults';
-import { getBasemapById, type BasemapId } from '@/app/map/config/basemaps';
-import type { MapOverlays, UserLocation } from '@/app/map/types';
+import { getBasemapById, type Basemap, type BasemapId } from '@/app/map/config/basemaps';
+import { OVERLAY_KEYS, type MapOverlays, type OverlayKey, type UserLocation } from '@/app/map/types';
 import { OVERLAY_REGISTRY, USER_LOCATION_OVERLAY, buildUserLocationGeoJson } from './overlays';
 import { removeLayerIfExists, removeSourceIfExists } from './overlays/overlayUtils';
 
@@ -31,6 +35,7 @@ export type MapEngineOptions = {
 
 export class MapEngine {
   private map: Map | null = null;
+  private attributionControl: AttributionControl | null = null;
   private activeBasemapId: BasemapId | null = null;
   private overlays: MapOverlays = {};
   private userLocation: UserLocation | null = null;
@@ -44,13 +49,15 @@ export class MapEngine {
     this.options = options;
   }
 
-  init(container: HTMLElement, initialStyleUrl: string, initialBasemapId?: BasemapId) {
+  init(container: HTMLElement, initialBasemapId: BasemapId) {
     if (this.map) return;
-    this.activeBasemapId = initialBasemapId ?? null;
+    const basemapId = this.activeBasemapId ?? initialBasemapId;
+    const basemap = getBasemapById(basemapId);
+    this.activeBasemapId = basemap.id;
 
     const map = new maplibregl.Map({
       container,
-      style: initialStyleUrl,
+      style: basemap.styleUrl,
       center: MAP_DEFAULT_CENTER,
       zoom: MAP_DEFAULT_ZOOM,
       maxZoom: MAP_MAX_ZOOM,
@@ -60,8 +67,8 @@ export class MapEngine {
     });
 
     this.map = map;
+    this.updateAttribution(basemap);
 
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
     map.addControl(
       new maplibregl.NavigationControl({
         showCompass: true,
@@ -91,9 +98,8 @@ export class MapEngine {
       }
     });
 
-    map.on('sourcedata', (event) => {
-      const dataEvent = event as { sourceDataType?: string };
-      if (dataEvent.sourceDataType === 'tile') {
+    map.on('sourcedata', (event: MapSourceDataEvent) => {
+      if (event.sourceDataType === 'tile') {
         this.metrics.tileLoads += 1;
       }
     });
@@ -108,28 +114,28 @@ export class MapEngine {
   }
 
   setBasemap(basemapId: BasemapId) {
+    if (this.activeBasemapId === basemapId) return;
+    const basemap = getBasemapById(basemapId);
+    this.activeBasemapId = basemapId;
+
     const map = this.map;
     if (!map) return;
-    const basemap = getBasemapById(basemapId);
-    if (!basemap) return;
-    if (this.activeBasemapId === basemapId) return;
-
-    this.activeBasemapId = basemapId;
     this.styleReady = false;
     this.metrics.styleSwitches += 1;
+    this.updateAttribution(basemap);
     map.setStyle(basemap.styleUrl);
   }
 
-  setOverlays(nextOverlays: Partial<MapOverlays>) {
+  setOverlays(nextOverlays: MapOverlays) {
     this.overlays = { ...this.overlays, ...nextOverlays };
     const map = this.map;
     if (!map || !this.styleReady) return;
 
     const beforeId = findFirstSymbolLayerId(map);
-    (Object.keys(nextOverlays) as Array<keyof MapOverlays>).forEach((key) => {
+    (
+      Object.entries(nextOverlays) as Array<[OverlayKey, MapOverlays[OverlayKey]]>
+    ).forEach(([key, data]) => {
       const overlay = OVERLAY_REGISTRY[key];
-      if (!overlay) return;
-      const data = this.overlays[key];
       if (!data) {
         this.removeOverlay(overlay.layerIds, overlay.sourceId);
         return;
@@ -172,7 +178,21 @@ export class MapEngine {
     if (!this.map) return;
     this.map.remove();
     this.map = null;
+    this.attributionControl = null;
+    this.activeBasemapId = null;
     this.styleReady = false;
+  }
+
+  private updateAttribution(basemap: Basemap) {
+    if (!this.map) return;
+    if (this.attributionControl) {
+      this.map.removeControl(this.attributionControl);
+    }
+    this.attributionControl = new maplibregl.AttributionControl({
+      compact: true,
+      customAttribution: basemap.attribution,
+    });
+    this.map.addControl(this.attributionControl, 'bottom-left');
   }
 
   private applyOverlays() {
@@ -180,14 +200,12 @@ export class MapEngine {
     if (!map || !this.styleReady) return;
     const beforeId = findFirstSymbolLayerId(map);
 
-    (Object.keys(OVERLAY_REGISTRY) as Array<keyof typeof OVERLAY_REGISTRY>).forEach(
-      (key) => {
-        const overlay = OVERLAY_REGISTRY[key];
-        const data = this.overlays[key];
-        if (!data) return;
-        overlay.apply(map, data, { beforeId });
-      },
-    );
+    OVERLAY_KEYS.forEach((key) => {
+      const overlay = OVERLAY_REGISTRY[key];
+      const data = this.overlays[key];
+      if (!data) return;
+      overlay.apply(map, data, { beforeId });
+    });
   }
 
   private applyUserLocation() {
@@ -205,9 +223,8 @@ export class MapEngine {
   }
 
   private applyBasemapEnhancements() {
-    if (!this.map || !this.activeBasemapId) return;
-    const basemap = getBasemapById(this.activeBasemapId);
-    if (!basemap) return;
+    const basemap = this.getActiveBasemap();
+    if (!this.map || !basemap) return;
 
     if (typeof basemap.preferredPitch === 'number') {
       this.map.setPitch(basemap.preferredPitch);
@@ -314,9 +331,7 @@ export class MapEngine {
 
   private centerOnUser(immediate: boolean) {
     if (!this.map || !this.userLocation) return;
-    const basemap = this.activeBasemapId
-      ? getBasemapById(this.activeBasemapId)
-      : null;
+    const basemap = this.getActiveBasemap();
     const pitch = basemap?.preferredPitch ?? MAP_DEFAULT_PITCH;
     this.lastFollowUpdate = Date.now();
 
@@ -330,6 +345,10 @@ export class MapEngine {
       pitch,
       duration: FOLLOW_ANIMATION_MS,
     });
+  }
+
+  private getActiveBasemap() {
+    return this.activeBasemapId ? getBasemapById(this.activeBasemapId) : null;
   }
 }
 

@@ -1,5 +1,5 @@
 import type { Map } from 'maplibre-gl';
-import type { MapOverlays } from '@/app/map/types';
+import type { OverlayData } from '@/app/map/types';
 import { ensureGeoJsonSource, ensureLayer } from './overlayUtils';
 import type { OverlayContext, OverlayDefinition } from './overlayRegistry';
 
@@ -7,11 +7,11 @@ const HEAT_SOURCE_ID = 'heat-source';
 const HEAT_LAYER_ID = 'heatmap-layer';
 const HEAT_POINT_LAYER_ID = 'heatmap-points';
 
-export const HEAT_OVERLAY: OverlayDefinition<NonNullable<MapOverlays['heat']>> = {
+export const HEAT_OVERLAY: OverlayDefinition<OverlayData['heat']> = {
   id: 'heat',
   sourceId: HEAT_SOURCE_ID,
   layerIds: [HEAT_LAYER_ID, HEAT_POINT_LAYER_ID],
-  apply(map: Map, data: NonNullable<MapOverlays['heat']>, context: OverlayContext) {
+  apply(map: Map, data: OverlayData['heat'], context: OverlayContext) {
     ensureGeoJsonSource(map, HEAT_SOURCE_ID, data);
 
     ensureLayer(

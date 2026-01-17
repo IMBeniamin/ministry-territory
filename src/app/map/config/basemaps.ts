@@ -1,14 +1,7 @@
 export type BasemapType = 'vector' | 'raster';
 
-export type BasemapId =
-  | 'osm-streets'
-  | 'osm-night'
-  | 'osm-3d'
-  | 'satellite-hybrid'
-  | 'here-streets';
-
-export type BasemapDefinition = {
-  id: BasemapId;
+export type BasemapDefinition<TId extends string = string> = {
+  id: TId;
   label: string;
   styleUrl: string;
   type: BasemapType;
@@ -21,7 +14,7 @@ export type BasemapDefinition = {
 
 const STYLE_BASE = '/styles';
 
-export const BASEMAPS: BasemapDefinition[] = [
+export const BASEMAPS = [
   {
     id: 'osm-streets',
     label: 'OSM Streets',
@@ -74,19 +67,36 @@ export const BASEMAPS: BasemapDefinition[] = [
     preferredPitch: 0,
     enabled: false,
   },
-];
+] as const satisfies ReadonlyArray<BasemapDefinition>;
+
+export type BasemapId = (typeof BASEMAPS)[number]['id'];
+export type Basemap = (typeof BASEMAPS)[number];
 
 export const DEFAULT_BASEMAP_ID: BasemapId = 'osm-streets';
 
-const basemapLookup = BASEMAPS.reduce<Record<BasemapId, BasemapDefinition>>(
+const BASEMAPS_BY_ID = BASEMAPS.reduce<Record<BasemapId, Basemap>>(
   (acc, basemap) => {
     acc[basemap.id] = basemap;
     return acc;
   },
-  {} as Record<BasemapId, BasemapDefinition>,
+  {} as Record<BasemapId, Basemap>,
 );
 
-export const getBasemapById = (id: BasemapId) => basemapLookup[id];
+export type BasemapOption = {
+  value: BasemapId;
+  label: string;
+};
+
+export const getBasemapById = (id: BasemapId) => BASEMAPS_BY_ID[id];
 
 export const getEnabledBasemaps = () =>
   BASEMAPS.filter((basemap) => basemap.enabled !== false);
+
+export const getBasemapOptions = (): BasemapOption[] =>
+  getEnabledBasemaps().map((basemap) => ({
+    value: basemap.id,
+    label: basemap.label,
+  }));
+
+export const isBasemapId = (value: string): value is BasemapId =>
+  Object.prototype.hasOwnProperty.call(BASEMAPS_BY_ID, value);

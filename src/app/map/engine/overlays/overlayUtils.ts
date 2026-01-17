@@ -21,7 +21,12 @@ export const ensureLayer = (
   layer: LayerSpecification,
   beforeId?: string,
 ) => {
-  if (map.getLayer(layer.id)) return;
+  if (map.getLayer(layer.id)) {
+    if (beforeId && beforeId !== layer.id && map.getLayer(beforeId)) {
+      map.moveLayer(layer.id, beforeId);
+    }
+    return;
+  }
   map.addLayer(layer, beforeId);
 };
 
