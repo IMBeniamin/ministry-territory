@@ -1,13 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Button, Collapse, Paper, SegmentedControl } from '@mantine/core';
 import { IconMap2 } from '@tabler/icons-react';
 import { createFileRoute } from '@tanstack/react-router';
-import { MapEngine } from '@/app/map/engine/MapEngine';
+import type { MapRef } from 'react-map-gl/maplibre';
+import { TerritoryMap } from '@/app/map/components/TerritoryMap';
+import { AreasOverlay } from '@/app/map/components/overlays/AreasOverlay';
+import { HeatOverlay } from '@/app/map/components/overlays/HeatOverlay';
+import { MarkersOverlay } from '@/app/map/components/overlays/MarkersOverlay';
+import { UserLocationOverlay } from '@/app/map/components/overlays/UserLocationOverlay';
+import { BasemapEnhancements } from '@/app/map/components/overlays/BasemapEnhancements';
+import { useMapState } from '@/app/map/hooks/useMapState';
+import { useFollowMode } from '@/app/map/hooks/useFollowMode';
 import {
-  DEFAULT_BASEMAP_ID,
+  getBasemapById,
   getBasemapOptions,
   isBasemapId,
-  type BasemapId,
 } from '@/app/map/config/basemaps';
 import { territoryGeoJson } from '@/app/map/mocks/overlayData';
 import './livemap.css';
@@ -17,40 +24,30 @@ export const Route = createFileRoute('/livemap')({
 });
 
 function MapRouteComponent() {
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapEngineRef = useRef<MapEngine | null>(null);
-  const [activeBasemapId, setActiveBasemapId] = useState<BasemapId>(
-    DEFAULT_BASEMAP_ID,
-  );
+  const mapRef = useRef<MapRef>(null);
+  const [state, actions] = useMapState();
   const [mapTypeOpen, setMapTypeOpen] = useState(false);
 
-  useEffect(() => {
-    if (!mapContainerRef.current || mapEngineRef.current) return;
+  const basemap = getBasemapById(state.basemapId);
 
-    const engine = new MapEngine({
-      onReady: () => {
-        engine.setOverlays({
-          areas: territoryGeoJson,
-        });
-      },
-    });
-
-    engine.init(mapContainerRef.current, DEFAULT_BASEMAP_ID);
-    mapEngineRef.current = engine;
-
-    return () => {
-      engine.destroy();
-      mapEngineRef.current = null;
-    };
-  }, []);
+  const { handleDragStart } = useFollowMode({
+    mapRef,
+    userLocation: state.userLocation,
+    followMode: state.followMode,
+    preferredPitch: basemap.preferredPitch,
+    onDisable: () => actions.setFollowMode(false),
+  });
 
   useEffect(() => {
-    mapEngineRef.current?.setBasemap(activeBasemapId);
-  }, [activeBasemapId]);
+    if (state.isStyleLoaded) {
+      actions.setOverlays({ areas: territoryGeoJson });
+    }
+  }, [state.isStyleLoaded, actions]);
 
   const handleBasemapChange = (value: string) => {
     if (!isBasemapId(value)) return;
-    setActiveBasemapId(value);
+    actions.setBasemap(value);
+    actions.setStyleLoaded(false);
   };
 
   return (
@@ -67,7 +64,7 @@ function MapRouteComponent() {
         <Collapse in={mapTypeOpen}>
           <Paper className="map-type-panel" shadow="md" radius="md" p="xs">
             <SegmentedControl
-              value={activeBasemapId}
+              value={state.basemapId}
               onChange={handleBasemapChange}
               data={getBasemapOptions()}
               size="xs"
@@ -76,7 +73,23 @@ function MapRouteComponent() {
           </Paper>
         </Collapse>
       </div>
-      <div id="map-container" ref={mapContainerRef} />
+
+      <div id="map-container">
+        <TerritoryMap
+          ref={mapRef}
+          viewState={state.viewState}
+          basemap={basemap}
+          onMove={(evt) => actions.setViewState(evt.viewState)}
+          onDragStart={handleDragStart}
+          onStyleLoad={() => actions.setStyleLoaded(true)}
+        >
+          <BasemapEnhancements basemap={basemap} />
+          <AreasOverlay data={state.overlays.areas} />
+          <HeatOverlay data={state.overlays.heat} />
+          <MarkersOverlay data={state.overlays.markers} />
+          <UserLocationOverlay location={state.userLocation} />
+        </TerritoryMap>
+      </div>
     </div>
   );
 }

@@ -1,12 +1,4 @@
-import type { Map } from 'maplibre-gl';
 import type { UserLocation } from '@/app/map/types';
-import { ensureGeoJsonSource, ensureLayer } from './overlayUtils';
-import type { OverlayContext, OverlayDefinition } from './overlayRegistry';
-
-const USER_LOCATION_SOURCE_ID = 'user-location-source';
-const USER_LOCATION_ACCURACY_LAYER_ID = 'user-location-accuracy';
-const USER_LOCATION_HEADING_LAYER_ID = 'user-location-heading';
-const USER_LOCATION_DOT_LAYER_ID = 'user-location-dot';
 
 const EARTH_RADIUS_METERS = 6378137;
 
@@ -102,65 +94,18 @@ export const buildUserLocationGeoJson = (
   };
 };
 
-export const USER_LOCATION_OVERLAY: OverlayDefinition<
-  GeoJSON.FeatureCollection<GeoJSON.Geometry>
-> = {
-  id: 'user-location',
-  sourceId: USER_LOCATION_SOURCE_ID,
-  layerIds: [
-    USER_LOCATION_ACCURACY_LAYER_ID,
-    USER_LOCATION_HEADING_LAYER_ID,
-    USER_LOCATION_DOT_LAYER_ID,
-  ],
-  apply(map: Map, data: GeoJSON.FeatureCollection<GeoJSON.Geometry>, context: OverlayContext) {
-    ensureGeoJsonSource(map, USER_LOCATION_SOURCE_ID, data);
-
-    ensureLayer(
-      map,
-      {
-        id: USER_LOCATION_ACCURACY_LAYER_ID,
-        type: 'fill',
-        source: USER_LOCATION_SOURCE_ID,
-        filter: ['==', ['get', 'role'], 'accuracy'],
-        paint: {
-          'fill-color': 'rgba(49, 130, 255, 0.18)',
-          'fill-outline-color': 'rgba(49, 130, 255, 0.4)',
-        },
-      },
-      context.beforeId,
-    );
-
-    ensureLayer(
-      map,
-      {
-        id: USER_LOCATION_HEADING_LAYER_ID,
-        type: 'line',
-        source: USER_LOCATION_SOURCE_ID,
-        filter: ['==', ['get', 'role'], 'heading'],
-        paint: {
-          'line-color': 'rgba(49, 130, 255, 0.75)',
-          'line-width': 2.5,
-          'line-opacity': 0.9,
-        },
-      },
-      context.beforeId,
-    );
-
-    ensureLayer(
-      map,
-      {
-        id: USER_LOCATION_DOT_LAYER_ID,
-        type: 'circle',
-        source: USER_LOCATION_SOURCE_ID,
-        filter: ['==', ['get', 'role'], 'position'],
-        paint: {
-          'circle-radius': 6,
-          'circle-color': '#1f65ff',
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 2,
-        },
-      },
-      context.beforeId,
-    );
-  },
+export const haversineDistanceMeters = (
+  [lng1, lat1]: [number, number],
+  [lng2, lat2]: [number, number],
+) => {
+  const earthRadius = 6371000;
+  const deltaLat = toRadians(lat2 - lat1);
+  const deltaLng = toRadians(lng2 - lng1);
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      Math.sin(deltaLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadius * c;
 };
