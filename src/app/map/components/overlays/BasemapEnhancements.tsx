@@ -92,10 +92,10 @@ export function BasemapEnhancements({ basemap }: BasemapEnhancementsProps) {
   return (
     <>
       {basemap.supports3d && (
-        <Layer source={vectorSourceId} beforeId={beforeId} {...buildingLayer} />
+        <Layer source={vectorSourceId} {...buildingLayer} />
       )}
       {basemap.supportsHouseNumbers && (
-        <Layer source={vectorSourceId} beforeId={beforeId} {...housenumberLayer} />
+        <Layer source={vectorSourceId} {...housenumberLayer} />
       )}
     </>
   );
