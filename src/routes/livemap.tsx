@@ -12,8 +12,6 @@ import {
 import { territoryGeoJson } from '@/app/map/mocks/overlayData';
 import './livemap.css';
 
-const BASEMAP_OPTIONS = getBasemapOptions();
-
 export const Route = createFileRoute('/livemap')({
   component: MapRouteComponent,
 });
@@ -71,7 +69,7 @@ function MapRouteComponent() {
             <SegmentedControl
               value={activeBasemapId}
               onChange={handleBasemapChange}
-              data={BASEMAP_OPTIONS}
+              data={getBasemapOptions()}
               size="xs"
               fullWidth
             />

@@ -43,10 +43,6 @@
   z-index: 10;
 }
 
-.map-type-panel {
-  width: min(200px, 70vw);
-}
-
 
 @media (max-width: 720px) {
   .map-type-control {

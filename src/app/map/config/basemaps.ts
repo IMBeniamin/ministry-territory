@@ -14,7 +14,7 @@ export type BasemapDefinition<TId extends string = string> = {
 
 const STYLE_BASE = '/styles';
 
-export const BASEMAPS = [
+export const BASEMAPS: ReadonlyArray<BasemapDefinition> = [
   {
     id: 'osm-streets',
     label: 'OSM Streets',
@@ -44,7 +44,6 @@ export const BASEMAPS = [
     supports3d: true,
     supportsHouseNumbers: true,
     preferredPitch: 0,
-    enabled: false,
   },
   {
     id: 'satellite-hybrid',
@@ -65,14 +64,13 @@ export const BASEMAPS = [
     supports3d: true,
     supportsHouseNumbers: true,
     preferredPitch: 0,
-    enabled: false,
   },
-] as const satisfies ReadonlyArray<BasemapDefinition>;
+];
 
 export type BasemapId = (typeof BASEMAPS)[number]['id'];
 export type Basemap = (typeof BASEMAPS)[number];
 
-export const DEFAULT_BASEMAP_ID: BasemapId = 'osm-streets';
+export const DEFAULT_BASEMAP_ID: BasemapId = 'osm-3d';
 
 const BASEMAPS_BY_ID = BASEMAPS.reduce<Record<BasemapId, Basemap>>(
   (acc, basemap) => {
