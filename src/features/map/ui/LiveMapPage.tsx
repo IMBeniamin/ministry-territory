@@ -5,6 +5,7 @@ import type { MapRef } from 'react-map-gl/maplibre';
 import {
   getBasemapById,
   getBasemapOptions,
+  normalizeBasemapId,
 } from '@/features/map/config/basemaps';
 import { territoryGeoJson } from '@/features/map/fixtures/overlayData';
 import { useFollowMode } from '@/features/map/hooks/useFollowMode';
@@ -39,7 +40,7 @@ export function LiveMapPage() {
   }, [state.isStyleLoaded, actions]);
 
   const handleBasemapChange = (value: string) => {
-    actions.setBasemap(value);
+    actions.setBasemap(normalizeBasemapId(value));
     actions.setStyleLoaded(false);
   };
 
