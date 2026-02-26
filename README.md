@@ -12,8 +12,9 @@ Base React + TypeScript + Vite project for territory mapping and overlay-driven 
 
 ## Structure
 
-- `src/app/map/config`: basemap definitions and map defaults.
-- `src/app/map/engine`: `MapEngine` and overlay implementations.
-- `src/app/map/mocks`: sample overlay data for local development.
-- `src/routes`: app routes (`/livemap` hosts the map).
+- `src/app`: application bootstrap, router, and root layout.
+- `src/features/home`: home page UI module.
+- `src/features/map`: map feature (`config`, `hooks`, `model`, `lib`, `fixtures`, `ui`).
+- `src/routes`: thin TanStack file-route wrappers.
+- `src/shared`: shared theme, global styles, and app-level constants.
 - `public/styles`: MapLibre style JSONs for basemaps.

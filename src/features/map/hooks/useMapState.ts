@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { ViewState } from 'react-map-gl/maplibre';
-import type { BasemapId } from '@/app/map/config/basemaps';
-import type { MapOverlays, UserLocation } from '@/app/map/types';
-import { DEFAULT_BASEMAP_ID } from '@/app/map/config/basemaps';
+import type { BasemapId } from '../config/basemaps';
+import type { MapOverlays, UserLocation } from '../model/types';
+import { DEFAULT_BASEMAP_ID, normalizeBasemapId } from '../config/basemaps';
 import {
   MAP_DEFAULT_CENTER,
   MAP_DEFAULT_ZOOM,
   MAP_DEFAULT_PITCH,
-} from '@/app/map/config/defaults';
+} from '../config/defaults';
 
 export type MapState = {
   viewState: ViewState;
@@ -20,14 +20,14 @@ export type MapState = {
 
 export type MapActions = {
   setViewState: (viewState: ViewState) => void;
-  setBasemap: (id: BasemapId) => void;
+  setBasemap: (id: string) => void;
   setOverlays: (overlays: Partial<MapOverlays>) => void;
   setUserLocation: (location: UserLocation | null) => void;
   setFollowMode: (enabled: boolean) => void;
   setStyleLoaded: (loaded: boolean) => void;
 };
 
-export function useMapState(initialBasemapId?: BasemapId) {
+export function useMapState(initialBasemapId?: string) {
   const [longitude, latitude] = MAP_DEFAULT_CENTER as [number, number];
 
   const [viewState, setViewState] = useState<ViewState>({
@@ -40,7 +40,7 @@ export function useMapState(initialBasemapId?: BasemapId) {
   });
 
   const [basemapId, setBasemapId] = useState<BasemapId>(
-    initialBasemapId ?? DEFAULT_BASEMAP_ID,
+    normalizeBasemapId(initialBasemapId ?? DEFAULT_BASEMAP_ID),
   );
   const [overlays, setOverlaysState] = useState<MapOverlays>({});
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -66,13 +66,13 @@ export function useMapState(initialBasemapId?: BasemapId) {
   const actions: MapActions = useMemo(
     () => ({
       setViewState,
-      setBasemap: setBasemapId,
+      setBasemap: (id) => setBasemapId(normalizeBasemapId(id)),
       setOverlays,
       setUserLocation,
       setFollowMode,
       setStyleLoaded,
     }),
-    [setOverlays],
+    [setOverlays, setBasemapId],
   );
 
   return [state, actions] as const;

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Source, Layer } from 'react-map-gl/maplibre';
 import type { FillLayerSpecification, LineLayerSpecification, CircleLayerSpecification } from 'maplibre-gl';
-import type { UserLocation } from '@/app/map/types';
-import { buildUserLocationGeoJson } from '@/app/map/utils/geoUtils';
+import type { UserLocation } from '../../model/types';
+import { buildUserLocationGeoJson } from '../../lib/geoUtils';
 
 const SOURCE_ID = 'user-location-source';
 

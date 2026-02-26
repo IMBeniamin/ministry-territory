@@ -1,12 +1,12 @@
 import { useRef, useCallback, useEffect } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
-import type { UserLocation } from '@/app/map/types';
+import type { UserLocation } from '../model/types';
 import {
   FOLLOW_ANIMATION_MS,
   FOLLOW_RECENTER_DISTANCE_METERS,
   FOLLOW_RECENTER_INTERVAL_MS,
-} from '@/app/map/config/defaults';
-import { haversineDistanceMeters } from '@/app/map/utils/geoUtils';
+} from '../config/defaults';
+import { haversineDistanceMeters } from '../lib/geoUtils';
 
 type UseFollowModeOptions = {
   mapRef: React.RefObject<MapRef | null>;
@@ -56,7 +56,7 @@ export function useFollowMode({
       followModeJustEnabled.current = true;
       centerOnUser(true);
     }
-  }, [followMode]);
+  }, [followMode, userLocation, centerOnUser]);
 
   // Handle location updates while following
   useEffect(() => {

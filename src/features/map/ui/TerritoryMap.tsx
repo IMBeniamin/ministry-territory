@@ -8,8 +8,8 @@ import Map, {
 } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { MAP_MAX_PITCH, MAP_MAX_ZOOM } from '@/app/map/config/defaults';
-import type { Basemap } from '@/app/map/config/basemaps';
+import { MAP_MAX_PITCH, MAP_MAX_ZOOM } from '../config/defaults';
+import type { Basemap } from '../config/basemaps';
 
 type TerritoryMapProps = {
   viewState: ViewState;
@@ -31,7 +31,7 @@ export const TerritoryMap = forwardRef<MapRef, TerritoryMapProps>(
 
     return (
       <Map
-        { ...{aroundCenter: false}}
+        {...{ aroundCenter: false }}
         ref={ref}
         mapLib={maplibregl}
         {...viewState}
@@ -43,7 +43,6 @@ export const TerritoryMap = forwardRef<MapRef, TerritoryMapProps>(
         maxPitch={MAP_MAX_PITCH}
         attributionControl={false}
         style={{ width: '100%', height: '100%' }}
-        
       >
         <NavigationControl position="bottom-right" showCompass showZoom />
         <AttributionControl

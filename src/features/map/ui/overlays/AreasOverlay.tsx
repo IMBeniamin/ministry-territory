@@ -1,6 +1,6 @@
 import { Source, Layer } from 'react-map-gl/maplibre';
 import type { FillLayerSpecification, LineLayerSpecification, SymbolLayerSpecification } from 'maplibre-gl';
-import type { OverlayData } from '@/app/map/types';
+import type { OverlayData } from '../../model/types';
 
 const SOURCE_ID = 'areas-source';
 

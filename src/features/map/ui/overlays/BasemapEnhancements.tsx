@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Layer, useMap } from 'react-map-gl/maplibre';
 import type { FillExtrusionLayerSpecification, SymbolLayerSpecification } from 'maplibre-gl';
-import type { Basemap } from '@/app/map/config/basemaps';
+import type { Basemap } from '../../config/basemaps';
 
 const BUILDING_LAYER_ID = 'app-3d-buildings';
 const HOUSENUMBER_LAYER_ID = 'app-housenumbers';
@@ -13,7 +13,6 @@ type BasemapEnhancementsProps = {
 export function BasemapEnhancements({ basemap }: BasemapEnhancementsProps) {
   const { current: map } = useMap();
   const [vectorSourceId, setVectorSourceId] = useState<string | null>(null);
-  const [beforeId, setBeforeId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!map) return;
@@ -27,9 +26,6 @@ export function BasemapEnhancements({ basemap }: BasemapEnhancementsProps) {
         ([, source]) => source.type === 'vector',
       );
       setVectorSourceId(vectorEntry?.[0] ?? null);
-
-      const symbolLayer = style.layers?.find((l) => l.type === 'symbol');
-      setBeforeId(symbolLayer?.id);
     };
 
     detectSources();

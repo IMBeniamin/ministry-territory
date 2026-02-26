@@ -1,4 +1,4 @@
-import type { UserLocation } from '@/app/map/types';
+import type { UserLocation } from '../model/types';
 
 const EARTH_RADIUS_METERS = 6378137;
 

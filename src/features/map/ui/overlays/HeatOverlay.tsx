@@ -1,6 +1,6 @@
 import { Source, Layer } from 'react-map-gl/maplibre';
 import type { HeatmapLayerSpecification, CircleLayerSpecification } from 'maplibre-gl';
-import type { OverlayData } from '@/app/map/types';
+import type { OverlayData } from '../../model/types';
 
 const SOURCE_ID = 'heat-source';
 

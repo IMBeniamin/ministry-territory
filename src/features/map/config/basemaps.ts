@@ -1,7 +1,7 @@
 export type BasemapType = 'vector' | 'raster';
 
-export type BasemapDefinition<TId extends string = string> = {
-  id: TId;
+export type Basemap = {
+  id: string;
   label: string;
   styleUrl: string;
   type: BasemapType;
@@ -14,7 +14,7 @@ export type BasemapDefinition<TId extends string = string> = {
 
 const STYLE_BASE = '/styles';
 
-export const BASEMAPS: ReadonlyArray<BasemapDefinition> = [
+export const BASEMAPS = [
   {
     id: 'osm-streets',
     label: 'OSM Streets',
@@ -65,36 +65,40 @@ export const BASEMAPS: ReadonlyArray<BasemapDefinition> = [
     supportsHouseNumbers: true,
     preferredPitch: 0,
   },
-];
+] as const satisfies readonly Basemap[];
 
 export type BasemapId = (typeof BASEMAPS)[number]['id'];
-export type Basemap = (typeof BASEMAPS)[number];
 
 export const DEFAULT_BASEMAP_ID: BasemapId = 'osm-3d';
 
-const BASEMAPS_BY_ID = BASEMAPS.reduce<Record<BasemapId, Basemap>>(
-  (acc, basemap) => {
-    acc[basemap.id] = basemap;
-    return acc;
-  },
-  {} as Record<BasemapId, Basemap>,
+const enabledBasemaps = BASEMAPS.filter(
+  (basemap) => !('enabled' in basemap) || basemap.enabled !== false,
 );
+const defaultBasemap = BASEMAPS.find(
+  (basemap) => basemap.id === DEFAULT_BASEMAP_ID,
+);
+
+if (!defaultBasemap) {
+  throw new Error(`Invalid default basemap id: ${DEFAULT_BASEMAP_ID}`);
+}
+
+export const normalizeBasemapId = (value: string): BasemapId => {
+  const basemap = BASEMAPS.find((entry) => entry.id === value);
+  return basemap?.id ?? DEFAULT_BASEMAP_ID;
+};
+
+export const getBasemapById = (id: string) => {
+  const basemap = BASEMAPS.find((entry) => entry.id === id);
+  return basemap ?? defaultBasemap;
+};
 
 export type BasemapOption = {
   value: BasemapId;
   label: string;
 };
 
-export const getBasemapById = (id: BasemapId) => BASEMAPS_BY_ID[id];
-
-export const getEnabledBasemaps = () =>
-  BASEMAPS.filter((basemap) => basemap.enabled !== false);
-
 export const getBasemapOptions = (): BasemapOption[] =>
-  getEnabledBasemaps().map((basemap) => ({
+  enabledBasemaps.map((basemap) => ({
     value: basemap.id,
     label: basemap.label,
   }));
-
-export const isBasemapId = (value: string): value is BasemapId =>
-  Object.prototype.hasOwnProperty.call(BASEMAPS_BY_ID, value);
